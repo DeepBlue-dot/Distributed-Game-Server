@@ -14,12 +14,12 @@ export const validate =
   
 export const updateProfileSchema = z.object({
   username: z.string().min(3).max(20).optional(),
-  avatarUrl: z.string().url().optional().or(z.literal("")),
+  avatarUrl: z.url().optional().or(z.literal("")),
   bio: z.string().max(200).optional(),
 });
 
 export const updateEmailSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
 });
 
 export const updatePasswordSchema = z.object({
@@ -29,12 +29,12 @@ export const updatePasswordSchema = z.object({
 
 export const registerSchema = z.object({
   username: z.string().min(3).max(20),
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(8).max(72),
 });
 
 export const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.email(),
   password: z.string().min(1),
 });
 

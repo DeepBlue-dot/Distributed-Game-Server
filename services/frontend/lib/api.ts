@@ -9,12 +9,15 @@ import type {
   RegisterPayload,
 } from "@/lib/types";
 
-export const backendOrigin =
-  process.env.NEXT_PUBLIC_BACKEND_ORIGIN || "http://localhost";
+export const backendOrigin = process.env.NEXT_PUBLIC_BACKEND_ORIGIN?.replace(
+  /\/$/,
+  "",
+) || "";
 
 export const api = axios.create({
-  baseURL: `${backendOrigin}/api`,
+  baseURL: backendOrigin ? `${backendOrigin}/api` : "/api",
   headers: {
+    Accept: "application/json",
     "Content-Type": "application/json",
   },
 });
@@ -49,8 +52,20 @@ export const authApi = {
   },
 
   async login(payload: LoginPayload) {
-    const res = await api.post<AuthTokenResponse>("/auth/login", payload);
-    return res.data;
+    const res = await api.post<AuthTokenResponse | { token?: string }>(
+      "/auth/login",
+      payload,
+    );
+    const token =
+      typeof res.data === "string"
+        ? res.data
+        : res.data?.token;
+
+    if (!token) {
+      throw new Error("No authentication token was returned by the server.");
+    }
+
+    return { token };
   },
 
   async logout() {
@@ -134,7 +149,7 @@ export const historyApi = {
 };
 
 export function getWebSocketUrl(token: string) {
-  const url = new URL(backendOrigin);
+  const url = new URL(backendOrigin || "http://127.0.0.1");
   url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
   url.pathname = "/ws";
   url.searchParams.set("token", token);
