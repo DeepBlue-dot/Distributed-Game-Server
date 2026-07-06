@@ -18,7 +18,7 @@ export interface IMatchHistory extends Document {
 
   turnCount: number;
 
-  reason: "COMPLETED" | "FORFEIT" | "TIMEOUT";
+  reason: "COMPLETED" | "DRAW" | "FORFEIT" | "TIMEOUT";
   terminationBy?: string | null;
 
   startedAt: Date;
@@ -51,7 +51,7 @@ const MatchHistorySchema = new Schema<IMatchHistory>({
 
   reason: {
     type: String,
-    enum: ["COMPLETED", "FORFEIT", "TIMEOUT"],
+    enum: ["COMPLETED", "DRAW", "FORFEIT", "TIMEOUT"],
     required: true,
   },
 
