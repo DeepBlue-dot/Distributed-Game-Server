@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { LogIn } from "lucide-react";
@@ -12,23 +12,29 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { login } = useAuth();
+  const { isAuthenticated, loading, login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, loading, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSubmitting(true);
     try {
       await login({ email, password });
       router.push("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
@@ -72,9 +78,9 @@ export default function LoginPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={submitting || loading}>
               <LogIn className="h-4 w-4" aria-hidden="true" />
-              {loading ? "Logging in..." : "Login"}
+              {submitting ? "Logging in..." : "Login"}
             </Button>
           </form>
         </CardContent>

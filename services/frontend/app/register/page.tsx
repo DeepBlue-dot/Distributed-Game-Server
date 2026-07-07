@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { UserPlus } from "lucide-react";
@@ -12,7 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 
 export default function RegisterPage() {
   const router = useRouter();
-  const { register } = useAuth();
+  const { isAuthenticated, loading, register } = useAuth();
   const [form, setForm] = useState({
     username: "",
     email: "",
@@ -20,15 +20,21 @@ export default function RegisterPage() {
     confirmPassword: "",
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!loading && isAuthenticated) {
+      router.replace("/dashboard");
+    }
+  }, [isAuthenticated, loading, router]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setLoading(true);
+    setSubmitting(true);
     if (form.password !== form.confirmPassword) {
       setError("Passwords do not match");
-      setLoading(false);
+      setSubmitting(false);
       return;
     }
     try {
@@ -37,7 +43,7 @@ export default function RegisterPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   }
 
@@ -102,9 +108,9 @@ export default function RegisterPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={submitting || loading}>
               <UserPlus className="h-4 w-4" aria-hidden="true" />
-              {loading ? "Creating Account..." : "Register"}
+              {submitting ? "Creating Account..." : "Register"}
             </Button>
           </form>
         </CardContent>
