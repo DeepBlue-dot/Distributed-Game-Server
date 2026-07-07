@@ -2,8 +2,9 @@
 
 import { History } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { FeedItem } from "@/lib/types";
 
-export function LiveFeed({ feed }: { feed: any[] }) {
+export function LiveFeed({ feed }: { feed: FeedItem[] }) {
   return (
     <div className="rounded-md border border-border bg-card p-4">
       <div className="mb-4 flex items-center justify-between gap-3">

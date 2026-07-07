@@ -1,7 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { BoardCell } from "@/lib/types";
+import type { BoardCell, GameOverMessage } from "@/lib/types";
 
 export function GameBoard({
   board,
@@ -12,7 +12,7 @@ export function GameBoard({
 }: {
   board: BoardCell[];
   isMyTurn: boolean;
-  gameOver: any;
+  gameOver: GameOverMessage["data"] | null;
   isConnected: boolean;
   onMakeMove: (position: number) => void;
 }) {

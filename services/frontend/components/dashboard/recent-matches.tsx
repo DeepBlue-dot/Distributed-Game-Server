@@ -2,12 +2,13 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import type { MatchHistoryItem } from "@/lib/types";
 
 export function RecentMatches({
   history,
   usernames,
 }: {
-  history: any[];
+  history: MatchHistoryItem[];
   usernames: Record<string, string>;
 }) {
   return (

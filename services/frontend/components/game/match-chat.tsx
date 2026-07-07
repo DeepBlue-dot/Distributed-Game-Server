@@ -6,6 +6,7 @@ import { MessageSquare, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import type { ChatItem } from "@/lib/types";
 
 function formatStatus(status?: string) {
   if (!status) return "Offline";
@@ -24,7 +25,7 @@ export function MatchChat({
   userId,
   onSendChat,
 }: {
-  chat: any[];
+  chat: ChatItem[];
   chatText: string;
   setChatText: (text: string) => void;
   canChat: boolean;

@@ -2,19 +2,19 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LogOut, Swords, UserPlus } from "lucide-react";
+import { History, LogOut, Swords, UserPlus } from "lucide-react";
 import { cn, getAvatarUrl } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useGameSocket } from "@/hooks/useGameSocket";
 
 export function Navbar() {
     const pathname = usePathname();
     const { isAuthenticated, logout, user } = useAuth();
+    const { connectionState, liveStatus } = useGameSocket(isAuthenticated);
 
     const navItems = [
-        { href: "/dashboard", label: "Dashboard" },
-        { href: "/matchmaking", label: "Queue" },
-        { href: "/game", label: "Game" },
+        { href: "/dashboard", label: "Hub" },
         { href: "/history", label: "History" },
         { href: "/users", label: "Players" },
         { href: "/settings", label: "Settings" },
@@ -36,7 +36,9 @@ export function Navbar() {
                                     href={item.href}
                                     className={cn(
                                         "transition-colors hover:text-foreground/80",
-                                        pathname === item.href ? "text-foreground" : "text-muted-foreground",
+                                        pathname === item.href || (item.href === "/history" && pathname.startsWith("/history"))
+                                            ? "text-foreground"
+                                            : "text-muted-foreground",
                                     )}
                                 >
                                     {item.label}
@@ -48,6 +50,24 @@ export function Navbar() {
                 <div className="flex flex-1 items-center justify-end gap-2">
                     {isAuthenticated ? (
                         <>
+                            <Link href="/history" className="hidden sm:block">
+                                <Button variant="ghost" size="sm" title="History">
+                                    <History className="h-4 w-4" aria-hidden="true" />
+                                    <span className="sr-only">History</span>
+                                </Button>
+                            </Link>
+                            <span
+                                className={cn(
+                                    "hidden rounded-md border px-2 py-1 text-xs font-semibold uppercase sm:inline-flex",
+                                    liveStatus === "IN_GAME" && "border-green-400/30 bg-green-400/10 text-green-300",
+                                    liveStatus === "QUEUED" && "border-amber-400/30 bg-amber-400/10 text-amber-300",
+                                    liveStatus === "IDLE" && "border-primary/30 bg-primary/10 text-primary",
+                                    liveStatus === "OFFLINE" && "border-muted bg-muted/40 text-muted-foreground",
+                                )}
+                                title={`Gateway ${connectionState}`}
+                            >
+                                {liveStatus === "IDLE" ? "online" : liveStatus.replace("_", " ")}
+                            </span>
                             <div className="hidden sm:flex items-center gap-2">
                                 <div className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent font-black text-white text-[10px] select-none shadow-sm uppercase overflow-hidden">
                                     {getAvatarUrl(user?.avatarUrl) ? (

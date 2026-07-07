@@ -1,6 +1,5 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import {
   Handshake,
   History,
@@ -12,15 +11,28 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-
-function shortId(id?: string) {
-  return id ? id.slice(0, 8) : "unknown";
-}
+import type { ActiveGameState, GameOverMessage } from "@/lib/types";
 
 function formatReason(reason?: string) {
   if (!reason) return "";
   return reason.replaceAll("_", " ").toLowerCase();
 }
+
+type RatingUpdate = {
+  matchId: string;
+  ratingChange: number;
+  newRating: number;
+} | null;
+
+type RematchState = {
+  matchId: string;
+  status: "idle" | "pending" | "accepted" | "expired";
+  requestedBy: string;
+} | null;
+
+type OverlayUser = {
+  id?: string;
+} | null;
 
 export function GameOverlay({
   game,
@@ -33,26 +45,31 @@ export function GameOverlay({
   requestRematch,
   declineRematch,
   user,
+  onFindNextMatch,
+  onOpenHistory,
+  onReturnToHub,
 }: {
-  game: any;
-  gameOver: any;
+  game: ActiveGameState | null;
+  gameOver: GameOverMessage["data"] | null;
   socketError: string | null;
   isConnected: boolean;
   sync: () => void;
-  ratingUpdate: any;
-  rematchState: any;
-  requestRematch: (matchId: string) => void;
-  declineRematch: (matchId: string) => void;
-  user: any;
+  ratingUpdate: RatingUpdate;
+  rematchState: RematchState;
+  requestRematch: (matchId: string) => boolean;
+  declineRematch: (matchId: string) => boolean;
+  user: OverlayUser;
+  onFindNextMatch: () => void;
+  onOpenHistory: () => void;
+  onReturnToHub: () => void;
 }) {
-  const router = useRouter();
   const opponentSymbol = game?.mySymbol === "X" ? "O" : "X";
 
-  const handleNavigate = (path: string) => {
+  const handleNavigate = (action: () => void) => {
     if (game?.matchId && rematchState?.status === "pending") {
       declineRematch(game.matchId);
     }
-    router.push(path);
+    action();
   };
 
   return (
@@ -82,7 +99,7 @@ export function GameOverlay({
               )}
               <div className="w-full grid gap-2.5">
                 <Button
-                  onClick={() => router.push("/matchmaking")}
+                  onClick={onFindNextMatch}
                   className="w-full min-h-11 rounded-xl bg-primary px-4 py-3 font-semibold tracking-wide text-primary-foreground shadow-md shadow-primary/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/95 active:scale-[0.98]"
                 >
                   <Play className="mr-2 h-4 w-4 fill-current" aria-hidden="true" />
@@ -99,7 +116,7 @@ export function GameOverlay({
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => router.push("/dashboard")}
+                  onClick={onReturnToHub}
                   className="w-full min-h-11 rounded-xl px-4 py-3 font-semibold text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/50 hover:text-foreground active:scale-[0.98]"
                 >
                   Go to Dashboard
@@ -232,14 +249,14 @@ export function GameOverlay({
 
               <div className="w-full grid gap-2.5">
                 <Button
-                  onClick={() => handleNavigate("/matchmaking")}
+                  onClick={() => handleNavigate(onFindNextMatch)}
                   className="w-full min-h-11 rounded-xl bg-primary px-4 py-3 font-semibold tracking-wide text-primary-foreground shadow-md shadow-primary/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-primary/95 active:scale-[0.98]"
                 >
                   Next Match
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => handleNavigate(`/history/${game.matchId}`)}
+                  onClick={() => handleNavigate(onOpenHistory)}
                   className="w-full min-h-11 rounded-xl border-border/80 bg-muted/30 px-4 py-3 font-semibold transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/50 active:scale-[0.98]"
                 >
                   <History className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -247,7 +264,7 @@ export function GameOverlay({
                 </Button>
                 <Button
                   variant="ghost"
-                  onClick={() => handleNavigate("/dashboard")}
+                  onClick={() => handleNavigate(onReturnToHub)}
                   className="w-full min-h-11 rounded-xl px-4 py-3 font-semibold text-muted-foreground transition-all duration-200 hover:-translate-y-0.5 hover:bg-muted/50 hover:text-foreground active:scale-[0.98]"
                 >
                   Back to Dashboard

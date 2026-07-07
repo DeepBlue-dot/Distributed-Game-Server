@@ -1,8 +1,11 @@
 "use client";
 
+/* eslint-disable react-hooks/set-state-in-effect */
+
 import { useEffect, useState } from "react";
 import { Radio } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { CurrentPlayerState } from "@/lib/types";
 
 export function LiveState({
   connectionState,
@@ -10,18 +13,19 @@ export function LiveState({
   liveOpponentUsername,
 }: {
   connectionState: string;
-  livePlayer: any;
+  livePlayer: CurrentPlayerState;
   liveOpponentUsername: string;
 }) {
   const [elapsed, setElapsed] = useState(0);
+  const queue = livePlayer.queue;
 
   useEffect(() => {
-    if (!livePlayer?.queue) {
+    if (!queue) {
       setElapsed(0);
       return;
     }
 
-    const initialWait = livePlayer.queue.waitTimeSeconds || 0;
+    const initialWait = queue.waitTimeSeconds || 0;
     const start = Date.now() - initialWait * 1000;
 
     // Set initial value immediately
@@ -32,7 +36,7 @@ export function LiveState({
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [livePlayer?.queue?.waitTimeSeconds, !livePlayer?.queue]);
+  }, [queue]);
 
   return (
     <Card>
