@@ -7,17 +7,19 @@ import { cn, getAvatarUrl } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useGameSocket } from "@/hooks/useGameSocket";
+import Image from "next/image";
+import { useState } from "react";
 
 export function Navbar() {
     const pathname = usePathname();
     const { isAuthenticated, logout, user } = useAuth();
     const { connectionState, liveStatus } = useGameSocket(isAuthenticated);
+    const [avatarError, setAvatarError] = useState(false);
 
     const navItems = [
         { href: "/dashboard", label: "Hub" },
         { href: "/history", label: "History" },
         { href: "/users", label: "Players" },
-        { href: "/settings", label: "Settings" },
     ];
 
     return (
@@ -69,31 +71,31 @@ export function Navbar() {
                                 {liveStatus === "IDLE" ? "online" : liveStatus.replace("_", " ")}
                             </span>
                             <div className="hidden sm:flex items-center gap-2">
-                                <div className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-primary to-accent font-black text-white text-[10px] select-none shadow-sm uppercase overflow-hidden">
-                                    {getAvatarUrl(user?.avatarUrl) ? (
-                                        <img
-                                            src={getAvatarUrl(user?.avatarUrl) || undefined}
-                                            alt={`${user?.username}'s avatar`}
-                                            className="h-full w-full object-cover animate-in fade-in duration-200"
-                                            onError={(e) => {
-                                                (e.target as HTMLElement).style.display = "none";
-                                                const sibling = (e.target as HTMLElement).nextElementSibling;
-                                                if (sibling) sibling.classList.remove("hidden");
-                                            }}
-                                        />
-                                    ) : null}
-                                    <div
-                                        className={cn(
-                                            "flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/80 to-accent/80 text-white select-none uppercase font-black w-full h-full text-[10px]",
-                                            getAvatarUrl(user?.avatarUrl) ? "hidden" : ""
+                                <Link href="/settings">
+                                    <div className="relative flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full bg-gradient-to-br from-primary to-accent font-black text-[10px] text-white shadow-sm select-none uppercase">
+                                        {getAvatarUrl(user?.avatarUrl) && !avatarError && (
+                                            <>
+                                            <Image
+                                                src={getAvatarUrl(user!.avatarUrl)!}
+                                                alt={`${user?.username}'s avatar`}
+                                                fill
+                                                sizes="28px"
+                                                className="object-cover animate-in fade-in duration-200"
+                                                onError={() => setAvatarError(true)}
+                                            />
+                                            <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/80 to-accent/80">
+                                                {user?.username?.charAt(0).toUpperCase() ?? "?"}
+                                            </div>
+                                            </>
                                         )}
-                                    >
-                                        {user?.username ? user.username.charAt(0).toUpperCase() : "?"}
+
+                                        {(avatarError || !getAvatarUrl(user?.avatarUrl)) && (
+                                            <div className="flex h-full w-full items-center justify-center bg-linear-to-br from-primary/80 to-accent/80">
+                                                {user?.username?.charAt(0).toUpperCase() ?? "?"}
+                                            </div>
+                                        )}
                                     </div>
-                                </div>
-                                <span className="max-w-36 truncate text-sm text-muted-foreground">
-                                    {user?.username}
-                                </span>
+                                </Link>
                             </div>
                             <Button variant="ghost" size="sm" onClick={() => void logout()} title="Log out">
                                 <LogOut className="h-4 w-4" aria-hidden="true" />

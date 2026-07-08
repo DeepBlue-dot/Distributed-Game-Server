@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Filter, Search, Trophy, Swords, ShieldAlert, Handshake, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,6 +38,7 @@ function MiniBoard({ board }: { board: BoardCell[] }) {
 }
 
 export default function HistoryPage() {
+  const router = useRouter();
   const { player } = useAuth();
   const [matches, setMatches] = useState<MatchHistoryItem[]>([]);
   const [result, setResult] = useState<GameResult | "">("");
@@ -209,7 +211,18 @@ export default function HistoryPage() {
               match.result === "LOSS" && "hover:border-red-500/30 hover:shadow-red-500/5",
               match.result === "DRAW" && "hover:border-amber-500/30 hover:shadow-amber-500/5"
             )}>
-              <CardContent className="flex items-center gap-4 p-4">
+              <CardContent
+                className="flex cursor-pointer items-center gap-4 p-4"
+                onClick={() => router.push(`/history/${match.matchId}`)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    router.push(`/history/${match.matchId}`);
+                  }
+                }}
+              >
                 <MiniBoard board={normalizeBoard(match.finalBoard)} />
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -252,7 +265,7 @@ export default function HistoryPage() {
                               ) : null}
                               <div
                                 className={cn(
-                                  "flex h-full w-full items-center justify-center bg-gradient-to-br from-primary/80 to-accent/80 text-white select-none uppercase font-black text-[10px] w-full h-full",
+                                  "flex h-full w-full items-center justify-center bg-linear-to-br from-primary/80 to-accent/80 text-white select-none uppercase font-black text-[10px]",
                                   getAvatarUrl(opponentProfiles[match.opponentId].avatarUrl) ? "hidden" : ""
                                 )}
                               >
@@ -296,11 +309,6 @@ export default function HistoryPage() {
                   >
                     {match.result}
                   </span>
-                  <Link href={`/history/${match.matchId}`}>
-                    <Button variant="ghost" size="sm" className="h-8 text-xs font-semibold hover:bg-muted group-hover:text-primary">
-                      Replay →
-                    </Button>
-                  </Link>
                 </div>
               </CardContent>
             </Card>
